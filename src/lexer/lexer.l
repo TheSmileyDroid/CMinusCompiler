@@ -1,4 +1,9 @@
 %{
+/*
+ * Nome: Anna Júlia Magalhães Miranda
+ * Nome: Gabriel Henrique Silva
+ */
+
 #include <stdio.h>
 #include <ostream>
 #include <iostream>
@@ -85,10 +90,10 @@ void test_file(const char *filename)
 int main()
 {
     // Test gcd.txt
-    test_file("../tests/gcd.txt");
+    test_file("gcd.txt");
 
     // Test sort.txt
-    test_file("../tests/sort.txt");
+    test_file("sort.txt");
 
     std::cout << "All tests passed successfully." << std::endl;
     return 0;
