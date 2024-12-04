@@ -80,7 +80,7 @@ whitespace  [ \t\n\r]
 {ID}                { printf("ID(%s) ", yytext);  return ID; }
 {NUM}               { printf("NUM(%s) ", yytext);  return NUM; }
 <<EOF>>             { return EOF; }
-.                   { printf("Erro léxico na linha: %d -> %s\n", yylineno, yytext); return UNKNOWN; }
+.                   { return UNKNOWN; }
 
 %%
 
@@ -97,7 +97,7 @@ int run_lexer(FILE* input) {
     {
         if (token == UNKNOWN)
         {
-            std::cerr << "Erro léxico na linha: " << yylineno << " -> " << yytext << std::endl;
+            std::cerr << "\n\nErro léxico na linha: " << yylineno << " -> " << yytext << std::endl;
             exit(1);
         }
     }

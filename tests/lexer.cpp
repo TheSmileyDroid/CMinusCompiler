@@ -988,7 +988,7 @@ case YY_STATE_EOF(INITIAL):
 case 30:
 YY_RULE_SETUP
 #line 83 "lexer.l"
-{ printf("Erro léxico na linha: %d -> %s\n", yylineno, yytext); return UNKNOWN; }
+{ return UNKNOWN; }
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
@@ -2026,7 +2026,7 @@ int run_lexer(FILE* input) {
     {
         if (token == UNKNOWN)
         {
-            std::cerr << "Erro léxico na linha: " << yylineno << " -> " << yytext << std::endl;
+            std::cerr << "\n\nErro léxico na linha: " << yylineno << " -> " << yytext << std::endl;
             exit(1);
         }
     }
@@ -2061,14 +2061,14 @@ void test_file(const char *filename)
     std::cout << std::endl;
 }
 
-int main()
+int main(int argc, char **argv)
 {
-    // Test gcd.txt
-    test_file("gcd.txt");
+    if (argc != 2)
+    {
+        std::cerr << "Usage: " << argv[0] << " <filename>" << std::endl;
+        return 1;
+    }
 
-    // Test sort.txt
-    test_file("sort.txt");
-
-    std::cout << "All tests passed successfully." << std::endl;
+    test_file(argv[1]);
     return 0;
 }
