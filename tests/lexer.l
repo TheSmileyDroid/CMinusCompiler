@@ -132,7 +132,6 @@ void test_file(const char *filename)
     std::cout << std::endl;
 }
 
-/*
 int main()
 {
     // Test gcd.txt
@@ -144,4 +143,3 @@ int main()
     std::cout << "All tests passed successfully." << std::endl;
     return 0;
 }
-*/

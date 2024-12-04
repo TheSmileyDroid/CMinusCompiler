@@ -15,6 +15,9 @@ int main()
     // Test sort.txt
     test_file("../tests/sort.txt");
 
+    // Test gcd_err.txt
+    test_file("../tests/gcd_err.txt");
+
     std::cout << "All tests passed successfully." << std::endl;
     return 0;
 }
