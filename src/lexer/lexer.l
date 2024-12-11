@@ -98,7 +98,7 @@ int run_lexer(FILE* input) {
         if (token == UNKNOWN)
         {
             std::cerr << "\n\nErro léxico na linha: " << yylineno << " -> " << yytext << std::endl;
-            exit(1);
+            return 1;
         }
     }
     return 0;
@@ -108,7 +108,7 @@ int yywrap() {
     return 1;
 }
 
-void test_file(const char *filename)
+int test_file(const char *filename)
 {
     std::cout << std::endl
               << "Testing " << filename << "..." << std::endl;
@@ -117,7 +117,7 @@ void test_file(const char *filename)
     if (!input)
     {
         std::cerr << "Error opening file: " << filename << std::endl;
-        exit(1);
+        return 1;
     }
 
     int result = run_lexer(input);
@@ -126,10 +126,11 @@ void test_file(const char *filename)
     if (result != 0)
     {
         std::cerr << "Test failed for " << filename << " with exit code " << result << std::endl;
-        exit(result);
+        return result;
     }
 
     std::cout << std::endl;
+    return 0;
 }
 
 /*
