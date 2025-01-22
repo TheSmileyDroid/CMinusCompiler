@@ -1,11 +1,12 @@
 #include <iostream>
-#include "ast.hpp"
-#include "parser.hpp"
+#include "compiler.h"
+#include "parser.tab.h"
 
 int main(int argc, char *argv[])
 {
     std::cout << "C- Compiler Initialized." << std::endl;
-    ASTNode *root = nullptr;
+    openFile(argv[1]);
+    parse();
 
     return 0;
 }

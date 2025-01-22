@@ -48,3 +48,8 @@ build/
 
 
 settings.json
+compiler
+parser.tab.*
+lex.yy.*
+*.output
+*.dot
