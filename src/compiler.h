@@ -1,9 +1,9 @@
 #ifndef COMPILER_H
 #define COMPILER_H
 
-#include "parser.tab.hpp"
+#include "globals.h"
 
 void openFile(const char *filename);
-void parse();
+YYSTYPE parse();
 
 #endif // COMPILER_H

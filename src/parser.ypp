@@ -1,141 +1,349 @@
 %{
 
+#define YYPARSER
+
+#include "globals.h"
+#include "utils.h"
+
 #include <iostream>
 #include <string>
 #include "compiler.h"
 
 extern int getToken(void);
 
-extern int yyparse(void);
 extern int yyerror(std::string message);
 extern void openFile(const char* filename);
 extern char* yytext;
+
+
 
 extern "C" {
     int yylex(void);
 }
 
 
-void parse();
+YYSTYPE parse();
+
+static TreeNode* tree;
+static char *name;
+
 %}
 
 %union {
-    int num;
-    char* str;
+    TreeNode* node; 
+    int ival;
+    char* string;
 }
 
 %token IF ELSE INT VOID RETURN WHILE
 
 %token EQ NE LE GE LT GT ASSIGN SEMICOLON COMMA LPAREN RPAREN LBRACKET RBRACKET LBRACE RBRACE PLUS MINUS TIMES DIV
 
-%token <num> NUM
+%token <ival> NUM
 
-%token <str> ID
+%token <string> ID
+%type <node> program expression factor var call simple_expression 
+%type <node> additive_expression term args arg_list param_list param params declaration_list 
+%type <node> declaration var_declaration type_specifier fun_declaration compound_stmt local_declarations 
+%type <node> statement_list statement selection_stmt iteration_stmt return_stmt expression_stmt
+%type <node> mulOperator addOperator relationalOperator
 
 %nonassoc LOWER_THAN_ELSE
 %nonassoc ELSE
 
 %%
 
-program: declaration_list
-
-declaration_list: declaration_list declaration | declaration
-
-declaration: var_declaration | fun_declaration
+program: declaration_list 
+    { 
+        tree = $1;
+        $$ = $1;
+    }
     ;
 
-var_declaration: type_specifier ID SEMICOLON | type_specifier ID LBRACKET NUM RBRACKET SEMICOLON
-   
+declaration_list: declaration_list declaration
+    {
+        TreeNode *t = $1;
+        if (t != nullptr) {
+            while (t->sibling != nullptr)
+                t = t->sibling;
+            t->sibling = $2;
+            $$ = $1;
+        } else {
+            $$ = $2;
+        }
+    }
+    | declaration { $$ = $1; }
+    ;
 
-type_specifier: INT | VOID
+declaration: var_declaration { $$ = $1; }
+    | fun_declaration { $$ = $1; }
+    ;
+
+var_declaration: type_specifier ID SEMICOLON
+    {
+        $$ = newStmtNode(VarDeclK);
+        $$->type = $1->type;
+        $$->attr.name = $2;
+    }
+    | type_specifier ID LBRACKET NUM RBRACKET SEMICOLON
+    {
+        $$ = newStmtNode(VarDeclK);
+        $$->type = $1->type;
+        $$->attr.name = $2;
+        TreeNode *size = newExpNode(ConstK);
+        size->attr.val = $4;
+        $$->children[0] = size;
+    }
+    ;
+
+type_specifier: INT 
+    {
+        $$ = newExpNode(IdK);
+        $$->type = Int;
+    }
+    | VOID 
+    {
+        $$ = newExpNode(IdK);
+        $$->type = Void;
+    }
+    ;
 
 fun_declaration: type_specifier ID LPAREN params RPAREN compound_stmt
+    {
+        $$ = newStmtNode(FunDeclK);
+        $$->type = $1->type;
+        $$->attr.name = $2;
+        $$->children[0] = $4;
+        $$->children[1] = $6;
+    }
+    ;
 
+params: param_list { $$ = $1; }
+    | VOID 
+    {
+        $$ = newStmtNode(ParamK);
+        $$->type = Void;
+    }
+    ;
 
-params: param_list | VOID
+param_list: param_list COMMA param
+    {
+        TreeNode *t = $1;
+        if (t != nullptr) {
+            while (t->sibling != nullptr)
+                t = t->sibling;
+            t->sibling = $3;
+            $$ = $1;
+        } else {
+            $$ = $3;
+        }
+    }
+    | param { $$ = $1; }
+    ;
 
-
-param_list: param_list COMMA param | param
-
-
-param: type_specifier ID | type_specifier ID LBRACKET RBRACKET
-
+param: type_specifier ID
+    {
+        $$ = newStmtNode(ParamK);
+        $$->type = $1->type;
+        $$->attr.name = $2;
+    }
+    | type_specifier ID LBRACKET RBRACKET
+    {
+        $$ = newStmtNode(ParamK);
+        $$->type = $1->type;
+        $$->attr.name = $2;
+        $$->children[0] = newExpNode(ConstK);
+    }
+    ;
 
 compound_stmt: LBRACE local_declarations statement_list RBRACE
+    {
+        $$ = newStmtNode(CompoundK);
+        $$->children[0] = $2;
+        $$->children[1] = $3;
+    }
+    ;
 
+local_declarations: local_declarations var_declaration
+    {
+        TreeNode *t = $1;
+        if (t != nullptr) {
+            while (t->sibling != nullptr)
+                t = t->sibling;
+            t->sibling = $2;
+            $$ = $1;
+        } else {
+            $$ = $2;
+        }
+    }
+    | /* empty */ { $$ = nullptr; }
+    ;
 
-local_declarations: local_declarations var_declaration | ;
+statement_list: statement_list statement
+    {
+        TreeNode *t = $1;
+        if (t != nullptr) {
+            while (t->sibling != nullptr)
+                t = t->sibling;
+            t->sibling = $2;
+            $$ = $1;
+        } else {
+            $$ = $2;
+        }
+    }
+    | /* empty */ { $$ = nullptr; }
+    ;
 
+statement: expression_stmt { $$ = $1; }
+    | compound_stmt { $$ = $1; }
+    | selection_stmt { $$ = $1; }
+    | iteration_stmt { $$ = $1; }
+    | return_stmt { $$ = $1; }
+    | error { $$ = nullptr; }
+    ;
 
-statement_list: statement_list statement | ;
-
-
-statement: expression_stmt | compound_stmt | selection_stmt | iteration_stmt | return_stmt | error
-
-expression_stmt: expression SEMICOLON | SEMICOLON
-
+expression_stmt: expression SEMICOLON { $$ = $1; }
+    | SEMICOLON { $$ = nullptr; }
+    ;
 
 selection_stmt: IF LPAREN expression RPAREN statement %prec LOWER_THAN_ELSE
-             | IF LPAREN expression RPAREN statement ELSE statement
-             ;
-
+    {
+        $$ = newStmtNode(IfK);
+        $$->children[0] = $3;
+        $$->children[1] = $5;
+    }
+    | IF LPAREN expression RPAREN statement ELSE statement
+    {
+        $$ = newStmtNode(IfK);
+        $$->children[0] = $3;
+        $$->children[1] = $5;
+        $$->children[2] = $7;
+    }
+    ;
 
 iteration_stmt: WHILE LPAREN expression RPAREN statement
-
-
-return_stmt: RETURN SEMICOLON | RETURN expression SEMICOLON
-
-
-expression: var ASSIGN expression 
-         | simple_expression
-         ;
-
-var: ID 
-   | ID LBRACKET expression RBRACKET
-   ;
-
-simple_expression: additive_expression relationalOperator additive_expression 
-                | additive_expression
-                ;
-
-relationalOperator: LT | LE | GT | GE | EQ | NE
-                 ;
-
-additive_expression: additive_expression addOperator term 
-                  | term
-                  ;
-
-addOperator: PLUS 
-          | MINUS
-          ;
-
-term: term mulOperator factor 
-    | factor
+    {
+        $$ = newStmtNode(WhileK);
+        $$->children[0] = $3;
+        $$->children[1] = $5;
+    }
     ;
 
-mulOperator: TIMES 
-          | DIV
-          ;
+return_stmt: RETURN SEMICOLON
+    {
+        $$ = newStmtNode(ReturnK);
+    }
+    | RETURN expression SEMICOLON
+    {
+        $$ = newStmtNode(ReturnK);
+        $$->children[0] = $2;
+    }
+    ;
 
-factor: LPAREN expression RPAREN 
-      | var 
-      | call 
-      | NUM
-      ;
+expression: var ASSIGN expression
+    {
+        $$ = newStmtNode(AssignK);
+        $$->children[0] = $1;
+        $$->children[1] = $3;
+    }
+    | simple_expression { $$ = $1; }
+    ;
+
+var: ID
+    {
+        $$ = newExpNode(IdK);
+        $$->attr.name = $1;
+    }
+    | ID LBRACKET expression RBRACKET
+    {
+        $$ = newExpNode(IdK);
+        $$->attr.name = $1;
+        $$->children[0] = $3;
+    }
+    ;
+
+simple_expression: additive_expression relationalOperator additive_expression
+    {
+        $$ = newExpNode(OpK);
+        $$->attr.op = $2->attr.op;
+        $$->children[0] = $1;
+        $$->children[1] = $3;
+    }
+    | additive_expression { $$ = $1; }
+    ;
+
+relationalOperator: LT { $$ = newExpNode(OpK); $$->attr.op = LT; }
+    | LE { $$ = newExpNode(OpK); $$->attr.op = LE; }
+    | GT { $$ = newExpNode(OpK); $$->attr.op = GT; }
+    | GE { $$ = newExpNode(OpK); $$->attr.op = GE; }
+    | EQ { $$ = newExpNode(OpK); $$->attr.op = EQ; }
+    | NE { $$ = newExpNode(OpK); $$->attr.op = NE; }
+    ;
+
+additive_expression: additive_expression addOperator term
+    {
+        $$ = newExpNode(OpK);
+        $$->attr.op = $2->attr.op;
+        $$->children[0] = $1;
+        $$->children[1] = $3;
+    }
+    | term { $$ = $1; }
+    ;
+
+addOperator: PLUS { $$ = newExpNode(OpK); $$->attr.op = PLUS; }
+    | MINUS { $$ = newExpNode(OpK); $$->attr.op = MINUS; }
+    ;
+
+term: term mulOperator factor
+    {
+        $$ = newExpNode(OpK);
+        $$->attr.op = $2->attr.op;
+        $$->children[0] = $1;
+        $$->children[1] = $3;
+    }
+    | factor { $$ = $1; }
+    ;
+
+mulOperator: TIMES { $$ = newExpNode(OpK); $$->attr.op = TIMES; }
+    | DIV { $$ = newExpNode(OpK); $$->attr.op = DIV; }
+    ;
+
+factor: LPAREN expression RPAREN { $$ = $2; }
+    | var { $$ = $1; }
+    | call { $$ = $1; }
+    | NUM
+    {
+        $$ = newExpNode(ConstK);
+        $$->attr.val = $1;
+    }
+    ;
 
 call: ID LPAREN args RPAREN
+    {
+        $$ = newExpNode(CallK);
+        $$->attr.name = $1;
+        $$->children[0] = $3;
+    }
     ;
 
-args: arg_list 
-    | /* empty */
+args: arg_list { $$ = $1; }
+    | /* empty */ { $$ = nullptr; }
     ;
 
-arg_list: arg_list COMMA expression 
-        | expression
-        ;
-
-
-
+arg_list: arg_list COMMA expression
+    {
+        TreeNode *t = $1;
+        if (t != nullptr) {
+            while (t->sibling != nullptr)
+                t = t->sibling;
+            t->sibling = $3;
+            $$ = $1;
+        } else {
+            $$ = $3;
+        }
+    }
+    | expression { $$ = $1; }
+    ;
 
 %%
 
@@ -149,9 +357,10 @@ int yyerror(std::string message)
 }
 
 
-void parse()
+TreeNode * parse()
 { 
     yyparse();
+    return tree;
 }
 
 void openFile(const char* filename)
