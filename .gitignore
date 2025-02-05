@@ -52,3 +52,4 @@ parser.tab.*
 lex.yy.*
 *.output
 *.dot
+*.gv

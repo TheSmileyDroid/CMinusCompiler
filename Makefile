@@ -1,19 +1,39 @@
+BISON     = bison
+FLEX      = flex
+CC        = gcc
+CXX       = g++
+CFLAGS    = -I. -Wall
+CXXFLAGS  = -I./src -Wall -std=c++11 -g
+LDFLAGS   =
 
 
+# Fontes e objetos
+SRCS      = src/main.cpp
+OBJS      = src/main.o src/lex.yy.o src/parser.tab.o
 
-all: compiler src/parser.tab.c src/lex.yy.c
+.PHONY: all clean
 
-src/parser.tab.c: src/parser.y
-	bison -d -v -g src/parser.y -o src/parser.tab.c -Wcounterexamples
+all: compiler
 
-src/lex.yy.c: src/parser.tab.c src/lexer.l
-	flex -o src/lex.yy.c src/lexer.l
+src/parser.tab.cpp: src/parser.ypp
+	$(BISON) -d -v -g $< -o $@ -Wcounterexamples
 
-src/lex.yy.o: src/lex.yy.c
-	gcc -I. -c src/lex.yy.c -o src/lex.yy.o
+src/parser.tab.hpp: src/parser.tab.cpp
 
-compiler: src/parser.tab.c src/lex.yy.o src/main.cpp
-	g++ -I./src -o compiler src/lex.yy.o src/parser.tab.c src/main.cpp -lfl
+src/lex.yy.c: src/lexer.l src/parser.tab.cpp
+	$(FLEX) -o $@ $<
+
+src/parser.tab.o: src/parser.tab.cpp
+	$(CXX) $(CFLAGS) -c $< -o $@
+
+src/lex.yy.o: src/lex.yy.c src/parser.tab.hpp
+	$(CC) $(CFLAGS) -c $< -o $@
+
+src/main.o: src/main.cpp src/parser.tab.hpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+compiler: $(OBJS)
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJS) $(LDFLAGS)
 
 clean:
-	rm src/lex.yy.c src/parser.dot src/parser.output src/parser.tab.c src/parser.tab.h
+	rm -f src/*.o src/parser.tab.* src/lex.yy.* compiler

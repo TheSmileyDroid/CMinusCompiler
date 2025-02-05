@@ -5,7 +5,7 @@
  */
 
 #include <stdio.h>
-#include "src/parser.tab.h"
+#include "src/parser.tab.hpp"
 
 extern YYSTYPE yylval;
 extern int yylex(void);
@@ -20,9 +20,10 @@ NUM         {digit}{digit}*
 whitespace  [ \t\n\r]
 
 %option yylineno
+%option noyywrap
 
 %%
-{whitespace}+                   {printf(yytext); }        ;
+{whitespace}+                   {printf("%s", yytext); }        ;
 "/*"([^*]|(\*+[^*/]))*"*/"              ;
 "if"                { printf("IF "); return IF; }
 "else"              { printf("ELSE "); return ELSE; }
@@ -60,8 +61,4 @@ whitespace  [ \t\n\r]
 
 int get_token() {
     return yylex();
-}
-
-int yywrap() {
-    return 1;
 }
