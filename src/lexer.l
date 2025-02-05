@@ -5,9 +5,8 @@
  */
 
 #include <stdio.h>
-#include "src/parser.tab.hpp"
+#include "globals.h"
 
-extern YYSTYPE yylval;
 extern int yylex(void);
 
 int run_lexer(FILE* input);
