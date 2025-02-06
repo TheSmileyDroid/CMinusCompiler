@@ -3,7 +3,9 @@
 
 #include "globals.h"
 
+#include "parser.tab.hpp"
+
 void openFile(const char *filename);
-YYSTYPE parse();
+TreeNode *parse();
 
 #endif // COMPILER_H

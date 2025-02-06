@@ -9,11 +9,14 @@ LDFLAGS   =
 
 # Fontes e objetos
 SRCS      = src/main.cpp
-OBJS      = src/main.o src/lex.yy.o src/parser.tab.o
+OBJS      = src/main.o src/lex.yy.o src/parser.tab.o src/utils.o
 
 .PHONY: all clean
 
 all: compiler
+
+src/utils.o: src/utils.cpp src/utils.h
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 src/parser.tab.cpp: src/parser.ypp
 	$(BISON) -d -v -g $< -o $@ -Wcounterexamples

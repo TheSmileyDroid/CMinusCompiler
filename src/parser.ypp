@@ -22,7 +22,7 @@ extern "C" {
 }
 
 
-YYSTYPE parse();
+TreeNode *parse();
 
 static TreeNode* tree;
 static char *name;
@@ -30,10 +30,10 @@ static char *name;
 %}
 
 %union {
-    TreeNode* node; 
+    TreeNode* node;
     int ival;
     char* string;
-}
+};
 
 %token IF ELSE INT VOID RETURN WHILE
 
@@ -42,9 +42,10 @@ static char *name;
 %token <ival> NUM
 
 %token <string> ID
-%type <node> program expression factor var call simple_expression 
-%type <node> additive_expression term args arg_list param_list param params declaration_list 
-%type <node> declaration var_declaration type_specifier fun_declaration compound_stmt local_declarations 
+%type <node> program
+%type <node> expression factor var call simple_expression
+%type <node> additive_expression term args arg_list param_list param params declaration_list
+%type <node> declaration var_declaration type_specifier fun_declaration compound_stmt local_declarations
 %type <node> statement_list statement selection_stmt iteration_stmt return_stmt expression_stmt
 %type <node> mulOperator addOperator relationalOperator
 
@@ -53,10 +54,10 @@ static char *name;
 
 %%
 
-program: declaration_list 
-    { 
-        tree = $1;
+program: declaration_list
+    {
         $$ = $1;
+        tree = $1;
     }
     ;
 
@@ -83,25 +84,25 @@ var_declaration: type_specifier ID SEMICOLON
     {
         $$ = newStmtNode(VarDeclK);
         $$->type = $1->type;
-        $$->attr.name = $2;
+        $$->attr.name = strdup($2);
     }
     | type_specifier ID LBRACKET NUM RBRACKET SEMICOLON
     {
         $$ = newStmtNode(VarDeclK);
         $$->type = $1->type;
-        $$->attr.name = $2;
+        $$->attr.name = strdup($2);
         TreeNode *size = newExpNode(ConstK);
         size->attr.val = $4;
         $$->children[0] = size;
     }
     ;
 
-type_specifier: INT 
+type_specifier: INT
     {
         $$ = newExpNode(IdK);
         $$->type = Int;
     }
-    | VOID 
+    | VOID
     {
         $$ = newExpNode(IdK);
         $$->type = Void;
@@ -112,14 +113,14 @@ fun_declaration: type_specifier ID LPAREN params RPAREN compound_stmt
     {
         $$ = newStmtNode(FunDeclK);
         $$->type = $1->type;
-        $$->attr.name = $2;
+        $$->attr.name = strdup($2);
         $$->children[0] = $4;
         $$->children[1] = $6;
     }
     ;
 
 params: param_list { $$ = $1; }
-    | VOID 
+    | VOID
     {
         $$ = newStmtNode(ParamK);
         $$->type = Void;
@@ -145,14 +146,13 @@ param: type_specifier ID
     {
         $$ = newStmtNode(ParamK);
         $$->type = $1->type;
-        $$->attr.name = $2;
+        $$->attr.name = strdup($2);
     }
     | type_specifier ID LBRACKET RBRACKET
     {
         $$ = newStmtNode(ParamK);
         $$->type = $1->type;
-        $$->attr.name = $2;
-        $$->children[0] = newExpNode(ConstK);
+        $$->attr.name = strdup($2);
     }
     ;
 
@@ -252,12 +252,12 @@ expression: var ASSIGN expression
 var: ID
     {
         $$ = newExpNode(IdK);
-        $$->attr.name = $1;
+        $$->attr.name = strdup($1);
     }
     | ID LBRACKET expression RBRACKET
     {
         $$ = newExpNode(IdK);
-        $$->attr.name = $1;
+        $$->attr.name = strdup($1);
         $$->children[0] = $3;
     }
     ;
@@ -321,7 +321,7 @@ factor: LPAREN expression RPAREN { $$ = $2; }
 call: ID LPAREN args RPAREN
     {
         $$ = newExpNode(CallK);
-        $$->attr.name = $1;
+        $$->attr.name = strdup($1);
         $$->children[0] = $3;
     }
     ;
@@ -358,7 +358,7 @@ int yyerror(std::string message)
 
 
 TreeNode * parse()
-{ 
+{
     yyparse();
     return tree;
 }

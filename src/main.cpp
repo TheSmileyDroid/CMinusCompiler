@@ -1,4 +1,6 @@
 #include "compiler.h"
+#include "globals.h"
+#include "utils.h"
 #include <iostream>
 
 int main(int argc, char *argv[]) {
@@ -8,7 +10,8 @@ int main(int argc, char *argv[]) {
     return 1;
   }
   openFile(argv[1]);
-  parse();
+  TreeNode *tree = parse();
+  printTree(tree);
 
   return 0;
 }

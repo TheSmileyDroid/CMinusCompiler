@@ -82,6 +82,6 @@ typedef struct treeNode {
 #define ENDFILE 0
 #endif
 
-#define YYSTYPE TreeNode *
+#define MAX_TOKEN_LENGTH 40
 
 #endif
