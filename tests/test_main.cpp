@@ -1,13 +1,8 @@
 #include <gtest/gtest.h>
 
-TEST(HelloTest, BasicAssertions) { EXPECT_EQ(1, 1); }
-
-#include "gtest/gtest.h"
-#include <algorithm>
-#include <fstream>
-#include <iostream>
 #include <string>
-#include <vector>
+
+TEST(HelloTest, BasicAssertions) { EXPECT_EQ(1, 1); }
 
 TEST(ParserTest, BasicAssertions) {
   std::string command = "compiler ./tests/sort.txt";
@@ -17,6 +12,12 @@ TEST(ParserTest, BasicAssertions) {
 
 TEST(ParserTest, ErrorAssertions) {
   std::string command = "compiler ./tests/gcd.1.txt";
+  int result = system(command.c_str());
+  ASSERT_EQ(1, result);
+}
+
+TEST(LexicalTest, ErrorAssertions) {
+  std::string command = "compiler ./tests/gcd_err.txt";
   int result = system(command.c_str());
   ASSERT_EQ(1, result);
 }

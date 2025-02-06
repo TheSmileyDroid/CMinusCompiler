@@ -55,7 +55,7 @@ whitespace  [ \t\n\r]
 {ID}                { printf("ID(%s) ", yytext); yylval.string = strdup(yytext);  return ID; }
 {NUM}               { printf("NUM(%s) ", yytext); yylval.ival = atoi(yytext); return NUM; }
 <<EOF>>             { return EOF; }
-.                   { printf("ERRO LÉXICO: caractere inválido '%s' na linha %d\n", yytext, yylineno); }
+.                   { printf("ERRO LÉXICO: caractere inválido '%s' na linha %d\n", yytext, yylineno); exit(1);}
 
 %%
 
