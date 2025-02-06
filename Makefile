@@ -3,7 +3,7 @@ FLEX      = flex
 CC        = gcc
 CXX       = g++
 CFLAGS    = -I. -Wall
-CXXFLAGS  = -I./src -Wall -std=c++11 -g
+CXXFLAGS  = -I./src -Wall -std=c++20 -g
 LDFLAGS   =
 
 
@@ -40,3 +40,18 @@ compiler: $(OBJS)
 
 clean:
 	rm -f src/*.o src/parser.tab.* src/lex.yy.* compiler
+
+GTEST_DIR = $(CURDIR)/googletest
+GTEST_LIB = $(GTEST_DIR)/build/lib/libgtest.a
+GTEST_INCLUDE = $(GTEST_DIR)/googletest/include
+
+$(GTEST_LIB):
+	git -C googletest pull || git clone https://github.com/google/googletest.git
+	cd googletest && mkdir -p build && cd build && cmake .. -G"Unix Makefiles" && make
+
+tests/test_main.o: tests/test_main.cpp $(GTEST_LIB) compiler
+	$(CXX) $(CXXFLAGS) -I$(GTEST_INCLUDE) -c $< -o $@
+
+test: tests/test_main.o $(GTEST_LIB)
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS) -lpthread
+	./test

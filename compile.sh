@@ -1,1 +1,1 @@
-make CC=clang CXX=clang++
+compiledb make CC=clang CXX=clang++

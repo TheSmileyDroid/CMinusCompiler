@@ -353,6 +353,7 @@ int yyerror(std::string message)
     extern int yylineno;
     std::cerr << "Erro sintático na linha " << yylineno << ": " << message << std::endl;
     std::cerr << "Último token lido: " << yytext << std::endl;
+    exit(1);
     return 1;
 }
 
