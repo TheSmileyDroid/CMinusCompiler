@@ -56,3 +56,4 @@ lex.yy.*
 .cache/
 
 test
+googletest/
