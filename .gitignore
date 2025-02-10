@@ -54,3 +54,5 @@ lex.yy.*
 *.dot
 *.gv
 .cache/
+
+test

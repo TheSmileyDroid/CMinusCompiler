@@ -62,6 +62,6 @@ whitespace  [ \t\n\r]
 
 yytoken_kind_t get_token() {
     yytoken_kind_t currentToken;
-    currentToken = yylex();
+    currentToken = (yytoken_kind_t)yylex();
     return currentToken;
 }
