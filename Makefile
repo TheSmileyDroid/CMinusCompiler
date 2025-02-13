@@ -6,10 +6,9 @@ CFLAGS    = -I. -Wall
 CXXFLAGS  = -I./src -Wall -std=c++20 -g
 LDFLAGS   =
 
-
 # Fontes e objetos
 SRCS      = src/main.cpp
-OBJS      = src/main.o src/lex.yy.o src/parser.tab.o src/utils.o src/symtab.o
+OBJS      = src/main.o src/lex.yy.o src/parser.tab.o src/utils.o src/symtab.o src/semantic.o
 
 .PHONY: all clean
 
@@ -36,6 +35,9 @@ src/main.o: src/main.cpp src/parser.tab.hpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 src/symtab.o: src/symtab.cpp src/symtab.h
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+src/semantic.o: src/semantic.cpp src/semantic.h
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 compiler: $(OBJS)

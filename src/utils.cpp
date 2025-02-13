@@ -23,7 +23,7 @@ TreeNode *newExpNode(ExpressionKind kind) {
   t->nodeKind = ExpressionK;
   t->kind.exp = kind;
   t->lineno = 0;
-  t->type = Void;
+  t->type = VOID_TYPE;
   return t;
 }
 
@@ -71,11 +71,11 @@ std::string getStmtKindStr(StatementKind kind) {
   }
 }
 
-std::string getExpTypeStr(ExpType type) {
+std::string getExpTypeStr(DataType type) {
   switch (type) {
-  case Void:
+  case VOID_TYPE:
     return "void";
-  case Int:
+  case INT_TYPE:
     return "int";
   default:
     return "unknown";
@@ -122,7 +122,7 @@ void printTree(TreeNode *tree) {
         std::cout << " " << tree->attr.name << " " << getExpTypeStr(tree->type);
       }
       if (tree->kind.stmt == ParamK) {
-        if (tree->type != Void) {
+        if (tree->type != VOID_TYPE) {
           std::cout << " " << getExpTypeStr(tree->type) << " "
                     << tree->attr.name;
         } else {

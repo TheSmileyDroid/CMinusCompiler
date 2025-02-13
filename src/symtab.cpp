@@ -6,7 +6,7 @@
 #define SIZE 211
 #define SHIFT 4
 
-static int currentMemLoc = 0; // contador para locais de memória
+static int currentMemLoc = 0;
 
 int getNextMemLoc() { return currentMemLoc++; }
 
@@ -24,7 +24,7 @@ static BucketList hashTable[SIZE];
 
 void st_insert(char *name, char *scope, int lineno, int loc, SymbolKind kind,
                DataType dataType) {
-  // Para variável, use "scope:name"; para função, use apenas o nome
+
   std::string keyStr =
       (kind == VAR_SYM) ? (std::string(scope) + ":" + name) : std::string(name);
   char *key = strdup(keyStr.c_str());
@@ -34,9 +34,9 @@ void st_insert(char *name, char *scope, int lineno, int loc, SymbolKind kind,
   while ((l != nullptr) && (strcmp(key, l->name) != 0))
     l = l->next;
 
-  if (l == nullptr) { /* símbolo ainda não está na tabela */
+  if (l == nullptr) {
     l = new struct BucketListRec;
-    l->name = key; // chave composta já duplicada
+    l->name = key;
     l->lines = new struct LineListRec;
     l->lines->lineno = lineno;
     l->memloc = loc;
@@ -46,7 +46,7 @@ void st_insert(char *name, char *scope, int lineno, int loc, SymbolKind kind,
     l->lines->next = nullptr;
     l->next = hashTable[h];
     hashTable[h] = l;
-  } else { /* símbolo encontrado, apenas adiciona o número da linha */
+  } else {
     LineList t = l->lines;
     while (t->next != nullptr)
       t = t->next;
@@ -54,8 +54,6 @@ void st_insert(char *name, char *scope, int lineno, int loc, SymbolKind kind,
     t->next->lineno = lineno;
     t->next->next = nullptr;
   }
-  // Se for variável e a chave era composta, libere a memória temporária usada
-  // para lookup se necessário
 }
 
 int st_lookup(char *name, char *scope, SymbolKind kind) {

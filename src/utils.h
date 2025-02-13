@@ -12,7 +12,7 @@ void printSpaces(int spaces);
 
 std::string getExpKindStr(ExpressionKind kind);
 std::string getStmtKindStr(StatementKind kind);
-std::string getExpTypeStr(ExpType type);
+std::string getExpTypeStr(DataType type);
 std::string getTokenStr(int token);
 
 #endif

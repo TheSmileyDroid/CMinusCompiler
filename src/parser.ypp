@@ -91,7 +91,6 @@ var_declaration: type_specifier ID SEMICOLON
         $$ = newStmtNode(VarDeclK);
         $$->type = $1->type;
         $$->attr.name = strdup($2);
-        st_insert($$->attr.name, currentScope, yylineno, getNextMemLoc(), VAR_SYM, ($1->type == Int ? INT_TYPE : VOID_TYPE));
     }
     | type_specifier ID LBRACKET NUM RBRACKET SEMICOLON
     {
@@ -101,19 +100,18 @@ var_declaration: type_specifier ID SEMICOLON
         TreeNode *size = newExpNode(ConstK);
         size->attr.val = $4;
         $$->children[0] = size;
-        st_insert($$->attr.name, currentScope, yylineno, getNextMemLoc(), VAR_SYM, ($1->type == Int ? INT_TYPE : VOID_TYPE));
     }
     ;
 
 type_specifier: INT
     {
         $$ = newExpNode(IdK);
-        $$->type = Int;
+        $$->type = INT_TYPE;
     }
     | VOID
     {
         $$ = newExpNode(IdK);
-        $$->type = Void;
+        $$->type = VOID_TYPE;
     }
     ;
 
@@ -130,7 +128,6 @@ fun_decl_header: type_specifier ID
         $$ = newStmtNode(FunDeclK);
         $$->type = $1->type;
         $$->attr.name = strdup($2);
-        st_insert($$->attr.name, "global", yylineno, 0, FUN_SYM, ($1->type == Int ? INT_TYPE : VOID_TYPE));
         strcpy(currentScope, $2);
     }
     ;
@@ -139,7 +136,7 @@ params: param_list { $$ = $1; }
     | VOID
     {
         $$ = newStmtNode(ParamK);
-        $$->type = Void;
+        $$->type = VOID_TYPE;
     }
     ;
 
@@ -163,14 +160,12 @@ param: type_specifier ID
         $$ = newStmtNode(ParamK);
         $$->type = $1->type;
         $$->attr.name = strdup($2);
-        st_insert($$->attr.name, currentScope, yylineno, getNextMemLoc(), VAR_SYM, ($1->type == Int ? INT_TYPE : VOID_TYPE));
     }
     | type_specifier ID LBRACKET RBRACKET
     {
         $$ = newStmtNode(ParamK);
         $$->type = $1->type;
         $$->attr.name = strdup($2);
-        st_insert($$->attr.name, currentScope, yylineno, getNextMemLoc(), VAR_SYM, ($1->type == Int ? INT_TYPE : VOID_TYPE));
     }
     ;
 

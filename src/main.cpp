@@ -1,5 +1,6 @@
 #include "compiler.h"
 #include "globals.h"
+#include "semantic.h"
 #include "symtab.h"
 #include "utils.h"
 #include <iostream>
@@ -13,6 +14,7 @@ int main(int argc, char *argv[]) {
   }
   openFile(argv[1]);
   TreeNode *tree = parse();
+  semanticCheck(tree); // chamada à verificação semântica
   printSymTab(stdout);
   printTree(tree);
 

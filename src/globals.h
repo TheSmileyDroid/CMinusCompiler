@@ -2,6 +2,7 @@
 #define GLOBALS_H
 
 /* Token kinds.  */
+#include "symtab.h"
 #ifndef YYTOKENTYPE
 #define YYTOKENTYPE
 enum yytokentype {
@@ -58,8 +59,6 @@ typedef enum {
 
 typedef enum { OpK, ConstK, IdK, CallK } ExpressionKind;
 
-typedef enum { Void, Int } ExpType;
-
 typedef struct treeNode {
   struct treeNode *children[MAX_CHILDREN];
   struct treeNode *sibling;
@@ -74,7 +73,7 @@ typedef struct treeNode {
     int val;
     char *name;
   } attr;
-  ExpType type;
+  DataType type;
 } TreeNode;
 
 #ifndef YYPARSER
