@@ -65,19 +65,21 @@ int st_lookup(char *name, char *scope, SymbolKind kind) {
   while ((l != nullptr) && (strcmp(key, l->name) != 0))
     l = l->next;
   free(key);
-  if (l == nullptr)
+  if (l == nullptr) {
+    if (strcmp(scope, "global") != 0)
+      return st_lookup(name, const_cast<char *>("global"), kind);
     return -1;
-  else
+  } else {
     return l->memloc;
+  }
 }
 
 void printSymTab(FILE *listing) {
-  int i;
-  fprintf(listing,
-          "Variable Name     Scope      Type   Location   Line Numbers\n");
-  fprintf(listing,
-          "-------------     -----      ----   --------   ------------\n");
-  for (i = 0; i < SIZE; ++i) {
+  fprintf(listing, "Variable Name     Scope      Type   DataType   Location   "
+                   "Line Numbers\n");
+  fprintf(listing, "-------------     -----      ----   --------   --------   "
+                   "------------\n");
+  for (int i = 0; i < SIZE; ++i) {
     if (hashTable[i] != nullptr) {
       BucketList l = hashTable[i];
       while (l != nullptr) {
@@ -85,6 +87,19 @@ void printSymTab(FILE *listing) {
         fprintf(listing, "%-17s ", l->name);
         fprintf(listing, "%-10s ", l->scope);
         fprintf(listing, "%-6s  ", (l->kind == VAR_SYM ? "var" : "fun"));
+        const char *dt = "";
+        switch (l->dataType) {
+        case INT_TYPE:
+          dt = "int";
+          break;
+        case VOID_TYPE:
+          dt = "void";
+          break;
+        default:
+          dt = "unknown";
+          break;
+        }
+        fprintf(listing, "%-8s  ", dt);
         fprintf(listing, "%-8d  ", l->memloc);
         while (t != nullptr) {
           fprintf(listing, "%4d ", t->lineno);

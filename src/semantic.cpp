@@ -10,12 +10,29 @@ static void traverse(TreeNode *node) {
   if (node == nullptr)
     return;
 
+  if (node->nodeKind == StatementK && node->kind.stmt == ParamK &&
+      node->type != VOID_TYPE) {
+    if (st_lookup(node->attr.name, const_cast<char *>(scope.c_str()),
+                  VAR_SYM) != -1) {
+      std::cerr << "Erro semântico: parâmetro '" << node->attr.name
+                << "' já declarado. Na linha " << node->lineno << "."
+                << std::endl;
+      printSymTab(stdout);
+      exit(1);
+    }
+    st_insert(node->attr.name, const_cast<char *>(scope.c_str()), node->lineno,
+              getNextMemLoc(), VAR_SYM, node->type);
+  }
+
   if (node->nodeKind == ExpressionK && node->kind.exp == IdK) {
     int loc =
         st_lookup(node->attr.name, const_cast<char *>(scope.c_str()), VAR_SYM);
     if (loc == -1) {
       std::cerr << "Erro semântico: variável '" << node->attr.name
-                << "' não declarada. Na linha " << node->lineno << ".";
+                << "' não declarada no escopo de " << scope << ". Na linha "
+                << node->lineno << "." << std::endl;
+
+      printSymTab(stdout);
       exit(1);
     }
   }
@@ -27,6 +44,7 @@ static void traverse(TreeNode *node) {
       if (node->attr.name)
         std::cerr << " para '" << node->attr.name << "'";
       std::cerr << "." << std::endl;
+      printSymTab(stdout);
       exit(1);
     }
   }
@@ -35,7 +53,9 @@ static void traverse(TreeNode *node) {
     if (st_lookup(node->attr.name, const_cast<char *>(scope.c_str()),
                   VAR_SYM) != -1) {
       std::cerr << "Erro semântico: variável '" << node->attr.name
-                << "' já declarada. Na linha " << node->lineno << ".";
+                << "' já declarada. Na linha " << node->lineno << "."
+                << std::endl;
+      printSymTab(stdout);
       exit(1);
     }
     st_insert(node->attr.name, const_cast<char *>(scope.c_str()), node->lineno,
@@ -47,10 +67,11 @@ static void traverse(TreeNode *node) {
                   FUN_SYM) != -1) {
       std::cerr << "Erro semântico: função '" << node->attr.name
                 << "' já declarada. Na linha " << node->lineno << ".";
+      printSymTab(stdout);
       exit(1);
     }
     st_insert(node->attr.name, const_cast<char *>(scope.c_str()), node->lineno,
-              -1, FUN_SYM, node->type);
+              getNextMemLoc(), FUN_SYM, node->type);
     scope = node->attr.name;
   }
 

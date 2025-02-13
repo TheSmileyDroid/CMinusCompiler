@@ -2,7 +2,7 @@ BISON     = bison
 FLEX      = flex
 CC        = gcc
 CXX       = g++
-CFLAGS    = -I. -Wall
+CFLAGS    = -I. -Wall -g
 CXXFLAGS  = -I./src -Wall -std=c++20 -g
 LDFLAGS   =
 

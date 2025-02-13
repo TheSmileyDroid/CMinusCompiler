@@ -28,6 +28,12 @@ TEST(LexicalTest, ErrorAssertions) {
   ASSERT_NE(0, result);
 }
 
+TEST(SemanticTest, ErrorAssertions) {
+  std::string command = "compiler ./tests/gcd_semantic.txt";
+  int result = system(command.c_str());
+  ASSERT_EQ(1, result);
+}
+
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
