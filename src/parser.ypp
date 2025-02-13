@@ -4,6 +4,7 @@
 
 #include "globals.h"
 #include "utils.h"
+#include "symtab.h"  // inclusão adicionada
 
 #include <iostream>
 #include <string>
@@ -16,7 +17,7 @@ extern int getToken(void);
 extern int yyerror(std::string message);
 extern void openFile(const char* filename);
 extern char* yytext;
-
+extern int yylineno;
 
 
 extern "C" {
@@ -25,6 +26,8 @@ extern "C" {
 
 
 TreeNode *parse();
+
+static char currentScope[256] = "global";
 
 static TreeNode* tree;
 static char *name;
@@ -50,6 +53,7 @@ static char *name;
 %type <node> declaration var_declaration type_specifier fun_declaration compound_stmt local_declarations
 %type <node> statement_list statement selection_stmt iteration_stmt return_stmt expression_stmt
 %type <node> mulOperator addOperator relationalOperator
+%type <node> fun_decl_header   // Inserido para declarar o tipo de fun_decl_header
 
 %nonassoc LOWER_THAN_ELSE
 %nonassoc ELSE
@@ -87,6 +91,7 @@ var_declaration: type_specifier ID SEMICOLON
         $$ = newStmtNode(VarDeclK);
         $$->type = $1->type;
         $$->attr.name = strdup($2);
+        st_insert($$->attr.name, currentScope, yylineno, getNextMemLoc(), VAR_SYM, ($1->type == Int ? INT_TYPE : VOID_TYPE));
     }
     | type_specifier ID LBRACKET NUM RBRACKET SEMICOLON
     {
@@ -96,6 +101,7 @@ var_declaration: type_specifier ID SEMICOLON
         TreeNode *size = newExpNode(ConstK);
         size->attr.val = $4;
         $$->children[0] = size;
+        st_insert($$->attr.name, currentScope, yylineno, getNextMemLoc(), VAR_SYM, ($1->type == Int ? INT_TYPE : VOID_TYPE));
     }
     ;
 
@@ -111,13 +117,21 @@ type_specifier: INT
     }
     ;
 
-fun_declaration: type_specifier ID LPAREN params RPAREN compound_stmt
+fun_declaration: fun_decl_header LPAREN params RPAREN compound_stmt
+    {
+        $$ = $1;
+        $$->children[0] = $3;
+        $$->children[1] = $5;
+    }
+    ;
+
+fun_decl_header: type_specifier ID
     {
         $$ = newStmtNode(FunDeclK);
         $$->type = $1->type;
         $$->attr.name = strdup($2);
-        $$->children[0] = $4;
-        $$->children[1] = $6;
+        st_insert($$->attr.name, "global", yylineno, 0, FUN_SYM, ($1->type == Int ? INT_TYPE : VOID_TYPE));
+        strcpy(currentScope, $2);
     }
     ;
 
@@ -149,12 +163,14 @@ param: type_specifier ID
         $$ = newStmtNode(ParamK);
         $$->type = $1->type;
         $$->attr.name = strdup($2);
+        st_insert($$->attr.name, currentScope, yylineno, getNextMemLoc(), VAR_SYM, ($1->type == Int ? INT_TYPE : VOID_TYPE));
     }
     | type_specifier ID LBRACKET RBRACKET
     {
         $$ = newStmtNode(ParamK);
         $$->type = $1->type;
         $$->attr.name = strdup($2);
+        st_insert($$->attr.name, currentScope, yylineno, getNextMemLoc(), VAR_SYM, ($1->type == Int ? INT_TYPE : VOID_TYPE));
     }
     ;
 
@@ -352,7 +368,7 @@ arg_list: arg_list COMMA expression
 
 int yyerror(std::string message)
 {
-    extern int yylineno;
+
     std::cerr << "Erro sintático na linha " << yylineno << ": " << message << std::endl;
     std::cerr << "Último token lido: " << yytext << std::endl;
     exit(1);

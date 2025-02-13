@@ -9,7 +9,7 @@ LDFLAGS   =
 
 # Fontes e objetos
 SRCS      = src/main.cpp
-OBJS      = src/main.o src/lex.yy.o src/parser.tab.o src/utils.o
+OBJS      = src/main.o src/lex.yy.o src/parser.tab.o src/utils.o src/symtab.o
 
 .PHONY: all clean
 
@@ -33,6 +33,9 @@ src/lex.yy.o: src/lex.yy.c src/parser.tab.hpp
 	$(CC) $(CFLAGS) -c $< -o $@
 
 src/main.o: src/main.cpp src/parser.tab.hpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+src/symtab.o: src/symtab.cpp src/symtab.h
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 compiler: $(OBJS)

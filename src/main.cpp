@@ -1,7 +1,9 @@
 #include "compiler.h"
 #include "globals.h"
+#include "symtab.h"
 #include "utils.h"
 #include <iostream>
+#include <stdio.h>
 
 int main(int argc, char *argv[]) {
   std::cout << "C- Compiler Initialized." << std::endl;
@@ -11,6 +13,7 @@ int main(int argc, char *argv[]) {
   }
   openFile(argv[1]);
   TreeNode *tree = parse();
+  printSymTab(stdout);
   printTree(tree);
 
   return 0;
