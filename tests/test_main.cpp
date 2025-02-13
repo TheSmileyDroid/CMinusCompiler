@@ -2,34 +2,40 @@
 
 #include <string>
 
+#if defined(__linux__) || defined(__APPLE__)
+#define COMPILER_PATH "./compiler"
+#elif defined(_WIN32)
+#define COMPILER_PATH "compiler.exe"
+#endif
+
 TEST(HelloTest, BasicAssertions) { EXPECT_EQ(1, 1); }
 
 TEST(ParserTest, BasicAssertions) {
-  std::string command = "compiler ./tests/gcd.txt";
+  std::string command = COMPILER_PATH " ./tests/gcd.txt";
   int result = system(command.c_str());
   ASSERT_EQ(0, result);
 }
 
 TEST(ParserTest, AdditionalAssertions) {
-  std::string command = "compiler ./tests/sort.txt";
+  std::string command = COMPILER_PATH " ./tests/sort.txt";
   int result = system(command.c_str());
   ASSERT_EQ(0, result);
 }
 
 TEST(ParserTest, ErrorAssertions) {
-  std::string command = "compiler ./tests/gcd.1.txt";
+  std::string command = COMPILER_PATH " ./tests/gcd.1.txt";
   int result = system(command.c_str());
   ASSERT_NE(0, result);
 }
 
 TEST(LexicalTest, ErrorAssertions) {
-  std::string command = "compiler ./tests/gcd_err.txt";
+  std::string command = COMPILER_PATH " ./tests/gcd_err.txt";
   int result = system(command.c_str());
   ASSERT_NE(0, result);
 }
 
 TEST(SemanticTest, ErrorAssertions) {
-  std::string command = "compiler ./tests/gcd_semantic.txt";
+  std::string command = COMPILER_PATH " ./tests/gcd_semantic.txt";
   int result = system(command.c_str());
   ASSERT_EQ(1, result);
 }
