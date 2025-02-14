@@ -43,6 +43,7 @@ void st_insert(char *name, char *scope, int lineno, int loc, SymbolKind kind,
     l->kind = kind;
     l->scope = strdup(scope);
     l->dataType = dataType;
+    l->paramCount = 0;
     l->lines->next = nullptr;
     l->next = hashTable[h];
     hashTable[h] = l;
@@ -54,6 +55,14 @@ void st_insert(char *name, char *scope, int lineno, int loc, SymbolKind kind,
     t->next->lineno = lineno;
     t->next->next = nullptr;
   }
+}
+
+void st_insert(char *name, char *scope, int lineno, int loc, SymbolKind kind,
+               DataType dataType, DataType *paramTypes, int paramCount) {
+  st_insert(name, scope, lineno, loc, kind, dataType);
+  BucketList l = st_retrieve(name, scope, kind);
+  l->paramTypes = paramTypes;
+  l->paramCount = paramCount;
 }
 
 int st_lookup(char *name, char *scope, SymbolKind kind) {
@@ -74,11 +83,24 @@ int st_lookup(char *name, char *scope, SymbolKind kind) {
   }
 }
 
+BucketList st_retrieve(char *name, char *scope, SymbolKind kind) {
+  std::string keyStr =
+      (kind == VAR_SYM) ? (std::string(scope) + ":" + name) : std::string(name);
+  char *key = strdup(keyStr.c_str());
+  int h = hash(key);
+  BucketList l = hashTable[h];
+  while ((l != nullptr) && (strcmp(key, l->name) != 0))
+    l = l->next;
+  free(key);
+  return l;
+}
+
 void printSymTab(FILE *listing) {
+  // Atualiza cabeçalho para incluir coluna de parâmetros
   fprintf(listing, "Variable Name     Scope      Type   DataType   Location   "
-                   "Line Numbers\n");
+                   "Param Types      Line Numbers\n");
   fprintf(listing, "-------------     -----      ----   --------   --------   "
-                   "------------\n");
+                   "-----------      ------------\n");
   for (int i = 0; i < SIZE; ++i) {
     if (hashTable[i] != nullptr) {
       BucketList l = hashTable[i];
@@ -101,6 +123,25 @@ void printSymTab(FILE *listing) {
         }
         fprintf(listing, "%-8s  ", dt);
         fprintf(listing, "%-8d  ", l->memloc);
+        // Adiciona impressão dos parâmetros para funções
+        if (l->kind != VAR_SYM) { // Função
+          std::string params = "(";
+          for (int i = 0; i < l->paramCount; i++) {
+            if (l->paramTypes[i] == INT_TYPE)
+              params += "int";
+            else if (l->paramTypes[i] == VOID_TYPE)
+              params += "void";
+            else
+              params += "unknown";
+            if (i < l->paramCount - 1)
+              params += ", ";
+          }
+          params += ")";
+          fprintf(listing, "%-15s  ", params.c_str());
+        } else {
+          fprintf(listing, "%-15s  ", "");
+        }
+        // Imprime números de linha
         while (t != nullptr) {
           fprintf(listing, "%4d ", t->lineno);
           t = t->next;
