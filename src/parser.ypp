@@ -30,7 +30,6 @@ TreeNode *parse();
 static char currentScope[256] = "global";
 
 static TreeNode* tree;
-static char *name;
 
 %}
 

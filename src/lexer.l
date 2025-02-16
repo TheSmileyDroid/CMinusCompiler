@@ -22,6 +22,8 @@ whitespace  [ \t\n\r]
 
 %option yylineno
 %option noyywrap
+%option nounput
+%option noinput
 
 %%
 {whitespace}+                   {printf("%s", yytext); }        ;

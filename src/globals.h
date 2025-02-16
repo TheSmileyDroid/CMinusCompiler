@@ -77,7 +77,9 @@ typedef struct treeNode {
 } TreeNode;
 
 #ifndef YYPARSER
-#include "parser.tab.hpp"
+
+#include "parser.tab.hpp" // IWYU pragma: keep
+
 #define ENDFILE 0
 #endif
 

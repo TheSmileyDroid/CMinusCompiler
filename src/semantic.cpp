@@ -37,6 +37,7 @@ static void traverse(TreeNode *node) {
   if (node == nullptr)
     return;
 
+  // Verifica se o parâmetro já foi declarado no escopo.
   if (node->nodeKind == StatementK && node->kind.stmt == ParamK &&
       node->type != VOID_TYPE) {
     if (st_lookup(node->attr.name, const_cast<char *>(scope.c_str()),
@@ -51,6 +52,7 @@ static void traverse(TreeNode *node) {
               getNextMemLoc(), VAR_SYM, node->type);
   }
 
+  // Verifica se a variável foi declarada.
   if (node->nodeKind == ExpressionK && node->kind.exp == IdK) {
     int loc =
         st_lookup(node->attr.name, const_cast<char *>(scope.c_str()), VAR_SYM);
@@ -58,12 +60,12 @@ static void traverse(TreeNode *node) {
       std::cerr << "Erro semântico: variável '" << node->attr.name
                 << "' não declarada no escopo de " << scope << ". Na linha "
                 << node->lineno << "." << std::endl;
-
       printSymTab(stdout);
       exit(1);
     }
   }
 
+  // Verifica se os tipos na atribuição são compatíveis.
   if (node->nodeKind == StatementK && node->kind.stmt == AssignK) {
     if (getExpressionType(node) !=
         st_retrieve(node->children[0]->attr.name,
@@ -78,6 +80,7 @@ static void traverse(TreeNode *node) {
     }
   }
 
+  // Verifica se a variável já foi declarada para declaração de variável.
   if (node->nodeKind == StatementK && node->kind.stmt == VarDeclK) {
     if (st_lookup(node->attr.name, const_cast<char *>(scope.c_str()),
                   VAR_SYM) != -1) {
@@ -99,6 +102,7 @@ static void traverse(TreeNode *node) {
     }
   }
 
+  // Verifica se a função já foi declarada.
   if (node->nodeKind == StatementK && node->kind.stmt == FunDeclK) {
     if (st_lookup(node->attr.name, const_cast<char *>(scope.c_str()),
                   FUN_SYM) != -1) {
@@ -124,6 +128,7 @@ static void traverse(TreeNode *node) {
     scope = node->attr.name;
   }
 
+  // Verifica se a função está declarada antes da chamada.
   if (node->nodeKind == ExpressionK && node->kind.exp == CallK) {
     if (st_lookup(node->attr.name, const_cast<char *>(scope.c_str()),
                   FUN_SYM) == -1) {
@@ -142,6 +147,7 @@ static void traverse(TreeNode *node) {
           st_retrieve(fun->name, const_cast<char *>(scope.c_str()), VAR_SYM);
       int i = 0;
       while (param) {
+        // Verifica se o número de parâmetros da função chamada é válido.
         if (i >= fun->paramCount) {
           std::cerr << "Erro semântico: número de parâmetros inválido para a "
                        "função '"
@@ -150,6 +156,8 @@ static void traverse(TreeNode *node) {
           printSymTab(stdout);
           exit(1);
         }
+        // Verifica se os tipos dos parâmetros da função chamada correspondem
+        // aos esperados.
         if (getExpressionType(param_node) != fun->paramTypes[i]) {
           std::cerr << "Erro semântico: tipo incompatível para parâmetro "
                     << i + 1 << " da função '" << node->attr.name << "'; '"
@@ -169,6 +177,7 @@ static void traverse(TreeNode *node) {
     }
   }
 
+  // Verifica se o tipo de retorno da função é compatível com o 'return'.
   if (node->nodeKind == StatementK && node->kind.stmt == ReturnK) {
     BucketList fun = st_retrieve(const_cast<char *>(scope.c_str()),
                                  const_cast<char *>(scope.c_str()), FUN_SYM);
@@ -184,6 +193,7 @@ static void traverse(TreeNode *node) {
     }
   }
 
+  // Verifica se o índice para a variável é negativo.
   if (node->nodeKind == ExpressionK && node->kind.exp == IdK) {
     if (node->children[0]) {
       if (node->children[0]->nodeKind == ExpressionK &&
@@ -199,6 +209,7 @@ static void traverse(TreeNode *node) {
     }
   }
 
+  // Verifica se o tipo do índice é int para a variável.
   if (node->nodeKind == ExpressionK && node->kind.exp == IdK) {
     if (node->children[0]) {
       if (getExpressionType(node->children[0]) != INT_TYPE) {
