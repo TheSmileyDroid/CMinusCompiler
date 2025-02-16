@@ -90,6 +90,13 @@ static void traverse(TreeNode *node) {
 
     st_insert(node->attr.name, const_cast<char *>(scope.c_str()), node->lineno,
               getNextMemLoc(), VAR_SYM, node->type);
+
+    if (node->children[0]) {
+      if (node->children[0]->nodeKind == ExpressionK &&
+          node->children[0]->kind.exp == ConstK) {
+        skipMemLoc(node->children[0]->attr.val);
+      }
+    }
   }
 
   if (node->nodeKind == StatementK && node->kind.stmt == FunDeclK) {
@@ -174,6 +181,34 @@ static void traverse(TreeNode *node) {
                 << ". Na linha " << node->lineno << "." << std::endl;
 
       exit(1);
+    }
+  }
+
+  if (node->nodeKind == ExpressionK && node->kind.exp == IdK) {
+    if (node->children[0]) {
+      if (node->children[0]->nodeKind == ExpressionK &&
+          node->children[0]->kind.exp == ConstK) {
+        if (node->children[0]->attr.val < 0) {
+          std::cerr << "Erro semântico: índice negativo para variável '"
+                    << node->attr.name << "'. Na linha " << node->lineno << "."
+                    << std::endl;
+          printSymTab(stdout);
+          exit(1);
+        }
+      }
+    }
+  }
+
+  if (node->nodeKind == ExpressionK && node->kind.exp == IdK) {
+    if (node->children[0]) {
+      if (getExpressionType(node->children[0]) != INT_TYPE) {
+        std::cerr << "Erro semântico: índice de tipo diferente de int para "
+                     "variável '"
+                  << node->attr.name << "'. Na linha " << node->lineno << "."
+                  << std::endl;
+        printSymTab(stdout);
+        exit(1);
+      }
     }
   }
 

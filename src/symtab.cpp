@@ -10,6 +10,7 @@
 static int currentMemLoc = 0;
 
 int getNextMemLoc() { return currentMemLoc++; }
+void skipMemLoc(int n) { currentMemLoc += n; }
 
 static int hash(char *key) {
   int temp = 0;

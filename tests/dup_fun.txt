@@ -1,0 +1,14 @@
+/* Programa com erro semântico: declaração duplicada de função */
+
+void foo(void)
+{
+    output(10);
+}
+void foo(void)
+{
+    output(20);
+}
+void main(void)
+{
+    foo();
+}

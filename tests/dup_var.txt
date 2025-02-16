@@ -1,0 +1,8 @@
+/* Programa com erro semântico: declaração duplicada de variável */
+
+void main(void)
+{
+    int a;
+    int a;
+    output(a);
+}

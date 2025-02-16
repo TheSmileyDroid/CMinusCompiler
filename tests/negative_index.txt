@@ -1,0 +1,7 @@
+/* Programa com erro semântico: índice negativo para variável */
+int vet[10];
+void main(void)
+{
+    vet[-1] = 5;
+    output(vet[-1]);
+}

@@ -1,0 +1,10 @@
+/* Programa com erro semântico: número incorreto de parâmetros */
+
+void foo(int a, int b)
+{
+    output(a + b);
+}
+void main(void)
+{
+    foo(10); // Chamando com parâmetro a menos
+}

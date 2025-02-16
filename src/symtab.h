@@ -52,5 +52,6 @@ BucketList st_retrieve(char *name, char *scope, SymbolKind kind);
 
 void printSymTab(FILE *listing);
 int getNextMemLoc();
+void skipMemLoc(int n);
 
 #endif

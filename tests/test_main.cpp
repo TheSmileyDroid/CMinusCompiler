@@ -52,6 +52,36 @@ TEST(SemanticTest, UndeclaredVariableTest) {
   ASSERT_NE(0, result);
 }
 
+TEST(SemanticTest, WrongParamTest) {
+  std::string command = COMPILER_PATH " ./tests/wrong_param.txt";
+  int result = system(command.c_str());
+  ASSERT_NE(0, result);
+}
+
+TEST(SemanticTest, DupVarTest) {
+  std::string command = COMPILER_PATH " ./tests/dup_var.txt";
+  int result = system(command.c_str());
+  ASSERT_NE(0, result);
+}
+
+TEST(SemanticTest, DupFunTest) {
+  std::string command = COMPILER_PATH " ./tests/dup_fun.txt";
+  int result = system(command.c_str());
+  ASSERT_NE(0, result);
+}
+
+TEST(SemanticTest, NegativeIndexTest) {
+  std::string command = COMPILER_PATH " ./tests/negative_index.txt";
+  int result = system(command.c_str());
+  ASSERT_NE(0, result);
+}
+
+TEST(SemanticTest, NonIntIndexTest) {
+  std::string command = COMPILER_PATH " ./tests/non_int_index.txt";
+  int result = system(command.c_str());
+  ASSERT_NE(0, result);
+}
+
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
