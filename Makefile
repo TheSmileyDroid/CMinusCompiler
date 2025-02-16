@@ -46,6 +46,10 @@ compiler: $(OBJS)
 clean:
 	rm -f src/*.o src/parser.tab.* src/lex.yy.* compiler
 
+.PHONY: release
+release: clean
+	$(MAKE) CXXFLAGS="-I./src -Wall -std=c++20 -O2" LDFLAGS="-static" compiler
+
 GTEST_DIR = $(CURDIR)/googletest
 GTEST_LIB = $(GTEST_DIR)/build/lib/libgtest.a
 GTEST_INCLUDE = $(GTEST_DIR)/googletest/include
