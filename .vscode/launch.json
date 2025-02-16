@@ -13,6 +13,7 @@
                 "tests/sort.txt"
             ],
             "cwd": "${workspaceFolder}",
+            "preLaunchTask": "Build with Clang",
         }
     ]
 }

@@ -22,6 +22,12 @@ TEST(ParserTest, AdditionalAssertions) {
   ASSERT_EQ(0, result);
 }
 
+TEST(ParserTest, FibonacciTest) {
+  std::string command = COMPILER_PATH " ./tests/fib.txt";
+  int result = system(command.c_str());
+  ASSERT_EQ(0, result);
+}
+
 TEST(ParserTest, ErrorAssertions) {
   std::string command = COMPILER_PATH " ./tests/gcd.1.txt";
   int result = system(command.c_str());
@@ -38,6 +44,12 @@ TEST(SemanticTest, ErrorAssertions) {
   std::string command = COMPILER_PATH " ./tests/gcd_semantic.txt";
   int result = system(command.c_str());
   ASSERT_EQ(1, result);
+}
+
+TEST(SemanticTest, UndeclaredVariableTest) {
+  std::string command = COMPILER_PATH " ./tests/undeclared.txt";
+  int result = system(command.c_str());
+  ASSERT_NE(0, result);
 }
 
 int main(int argc, char **argv) {

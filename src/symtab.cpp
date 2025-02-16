@@ -1,4 +1,5 @@
 #include "symtab.h"
+#include <cstddef>
 #include <cstdlib>
 #include <cstring>
 #include <string>
@@ -57,8 +58,9 @@ void st_insert(char *name, char *scope, int lineno, int loc, SymbolKind kind,
   }
 }
 
-void st_insert(char *name, char *scope, int lineno, int loc, SymbolKind kind,
-               DataType dataType, DataType *paramTypes, int paramCount) {
+void st_insert_func(char *name, char *scope, int lineno, int loc,
+                    SymbolKind kind, DataType dataType, DataType *paramTypes,
+                    int paramCount) {
   st_insert(name, scope, lineno, loc, kind, dataType);
   BucketList l = st_retrieve(name, scope, kind);
   l->paramTypes = paramTypes;
@@ -84,6 +86,8 @@ int st_lookup(char *name, char *scope, SymbolKind kind) {
 }
 
 BucketList st_retrieve(char *name, char *scope, SymbolKind kind) {
+  if (!*name)
+    return nullptr;
   std::string keyStr =
       (kind == VAR_SYM) ? (std::string(scope) + ":" + name) : std::string(name);
   char *key = strdup(keyStr.c_str());
@@ -92,6 +96,13 @@ BucketList st_retrieve(char *name, char *scope, SymbolKind kind) {
   while ((l != nullptr) && (strcmp(key, l->name) != 0))
     l = l->next;
   free(key);
+  if (l == nullptr) {
+    if (strcmp(scope, "global") != 0)
+      return st_retrieve(name, const_cast<char *>("global"), kind);
+    return nullptr;
+  } else {
+    return l;
+  }
   return l;
 }
 

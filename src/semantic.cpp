@@ -6,6 +6,33 @@
 
 std::string scope = "global";
 
+DataType getExpressionType(TreeNode *node) {
+  if (node->nodeKind == ExpressionK && node->kind.exp == OpK) {
+    DataType leftType = getExpressionType(node->children[0]);
+    DataType rightType = getExpressionType(node->children[1]);
+    if (leftType != rightType) {
+      return UNKNOWN_TYPE;
+    }
+    return leftType;
+  } else if (node->nodeKind == ExpressionK && node->kind.exp == ConstK) {
+    return INT_TYPE;
+  } else if (node->nodeKind == ExpressionK && node->kind.exp == IdK) {
+    return st_retrieve(node->attr.name, const_cast<char *>(scope.c_str()),
+                       VAR_SYM)
+        ->dataType;
+  } else if (node->nodeKind == ExpressionK && node->kind.exp == CallK) {
+    return st_retrieve(node->attr.name, const_cast<char *>(scope.c_str()),
+                       FUN_SYM)
+        ->dataType;
+  } else if (node->nodeKind == StatementK && node->kind.stmt == ReturnK &&
+             node->children[0]) {
+    return getExpressionType(node->children[0]);
+  } else if (node->nodeKind == StatementK && node->kind.stmt == AssignK) {
+    return getExpressionType(node->children[0]);
+  }
+  return UNKNOWN_TYPE;
+}
+
 static void traverse(TreeNode *node) {
   if (node == nullptr)
     return;
@@ -38,8 +65,10 @@ static void traverse(TreeNode *node) {
   }
 
   if (node->nodeKind == StatementK && node->kind.stmt == AssignK) {
-    if (node->children[0] && node->children[1] &&
-        node->children[0]->type != node->children[1]->type) {
+    if (getExpressionType(node) !=
+        st_retrieve(node->children[0]->attr.name,
+                    const_cast<char *>(scope.c_str()), VAR_SYM)
+            ->dataType) {
       std::cerr << "Erro semântico: tipos incompatíveis em atribuição";
       if (node->attr.name)
         std::cerr << " para '" << node->attr.name << "'";
@@ -67,7 +96,8 @@ static void traverse(TreeNode *node) {
     if (st_lookup(node->attr.name, const_cast<char *>(scope.c_str()),
                   FUN_SYM) != -1) {
       std::cerr << "Erro semântico: função '" << node->attr.name
-                << "' já declarada. Na linha " << node->lineno << ".";
+                << "' já declarada. Na linha " << node->lineno << "."
+                << std::endl;
       printSymTab(stdout);
       exit(1);
     }
@@ -81,8 +111,9 @@ static void traverse(TreeNode *node) {
       paramTypes[paramCount - 1] = child->type;
       child = child->sibling;
     }
-    st_insert(node->attr.name, const_cast<char *>(scope.c_str()), node->lineno,
-              getNextMemLoc(), FUN_SYM, node->type, paramTypes, paramCount);
+    st_insert_func(node->attr.name, const_cast<char *>(scope.c_str()),
+                   node->lineno, getNextMemLoc(), FUN_SYM, node->type,
+                   paramTypes, paramCount);
     scope = node->attr.name;
   }
 
@@ -90,7 +121,8 @@ static void traverse(TreeNode *node) {
     if (st_lookup(node->attr.name, const_cast<char *>(scope.c_str()),
                   FUN_SYM) == -1) {
       std::cerr << "Erro semântico: função '" << node->attr.name
-                << "' não declarada. Na linha " << node->lineno << ".";
+                << "' não declarada. Na linha " << node->lineno << "."
+                << std::endl;
       printSymTab(stdout);
       exit(1);
     }
@@ -106,17 +138,19 @@ static void traverse(TreeNode *node) {
         if (i >= fun->paramCount) {
           std::cerr << "Erro semântico: número de parâmetros inválido para a "
                        "função '"
-                    << node->attr.name << "'. Na linha " << node->lineno << ".";
+                    << node->attr.name << "'. Na linha " << node->lineno << "."
+                    << std::endl;
           printSymTab(stdout);
           exit(1);
         }
-        if (param->dataType != fun->paramTypes[i]) {
+        if (getExpressionType(param_node) != fun->paramTypes[i]) {
           std::cerr << "Erro semântico: tipo incompatível para parâmetro "
                     << i + 1 << " da função '" << node->attr.name << "'; '"
                     << param->name << "' era do tipo "
-                    << dataTypeToString(param->dataType) << " mas esperava-se "
+                    << dataTypeToString(getExpressionType(param_node))
+                    << " mas esperava-se "
                     << dataTypeToString(fun->paramTypes[i]) << " Na linha "
-                    << node->lineno << ".";
+                    << node->lineno << "." << std::endl;
           printSymTab(stdout);
           exit(1);
         }
@@ -125,6 +159,21 @@ static void traverse(TreeNode *node) {
                             const_cast<char *>(scope.c_str()), VAR_SYM);
         i++;
       }
+    }
+  }
+
+  if (node->nodeKind == StatementK && node->kind.stmt == ReturnK) {
+    BucketList fun = st_retrieve(const_cast<char *>(scope.c_str()),
+                                 const_cast<char *>(scope.c_str()), FUN_SYM);
+    if (getExpressionType(node) != fun->dataType) {
+      printSymTab(stdout);
+      std::cerr << "Erro semântico: tipo de retorno incompatível para função '"
+                << scope << "'. Variável de retorno era do tipo "
+                << dataTypeToString(getExpressionType(node))
+                << " mas esperava-se " << dataTypeToString(fun->dataType)
+                << ". Na linha " << node->lineno << "." << std::endl;
+
+      exit(1);
     }
   }
 
@@ -141,8 +190,9 @@ static void traverse(TreeNode *node) {
 void addIOFunctions() {
   st_insert(const_cast<char *>("input"), const_cast<char *>(scope.c_str()), 0,
             getNextMemLoc(), FUN_SYM, INT_TYPE);
-  st_insert(const_cast<char *>("output"), const_cast<char *>(scope.c_str()), 0,
-            getNextMemLoc(), FUN_SYM, VOID_TYPE, new DataType[1]{INT_TYPE}, 1);
+  st_insert_func(const_cast<char *>("output"),
+                 const_cast<char *>(scope.c_str()), 0, getNextMemLoc(), FUN_SYM,
+                 VOID_TYPE, new DataType[1]{INT_TYPE}, 1);
 }
 
 void semanticCheck(TreeNode *tree) {
