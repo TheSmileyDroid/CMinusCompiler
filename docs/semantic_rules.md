@@ -1,6 +1,6 @@
 # Regras Semânticas da Linguagem C-
 
-As regras semânticas da linguagem C- são descritas na seção A.2 do documento, que apresenta a gramática BNF juntamente com explicações sobre a semântica. A seguir, estão as principais regras:
+A seguir, estão as principais regras da linguagem C-:
 
 1. **Programa e Declarações**
    - Um programa é composto por uma lista de declarações, que podem ser de variáveis ou funções, em qualquer ordem.
