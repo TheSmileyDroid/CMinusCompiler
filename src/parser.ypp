@@ -105,7 +105,6 @@ var_declaration: type_specifier ID SEMICOLON
         size->attr.val = $4;
         $$->children[0] = size;
         $$->lineno = yylineno;
-        std::cout << "Creating array " << $2 << " with size " << $4 << " of type " << $1->type << " in line " << yylineno << std::endl;
     }
     ;
 
